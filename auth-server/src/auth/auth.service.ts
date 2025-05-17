@@ -1,51 +1,69 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthRepository } from './auth.repository';
 import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
+import { User } from '../schemas/user.schema';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly authRepository: AuthRepository) {}
+  private readonly jwtSecret: string;
 
-  async register(
-    registerDto: RegisterDto,
-  ): Promise<{ success: boolean; message: string }> {
+  constructor(
+    private readonly authRepository: AuthRepository,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+  ) {
+    this.jwtSecret = this.configService.get<string>('JWT_SECRET');
+  }
+
+  private generateToken(user: User) {
+    const payload = {
+      sub: user._id,
+      username: user.username,
+      role: user.role,
+    };
+    return this.jwtService.sign(payload, { secret: this.jwtSecret });
+  }
+
+  async register(registerDto: RegisterDto): Promise<{ token: string }> {
     const { username, password } = registerDto;
     const existing = await this.authRepository.findByUsername(username);
     if (existing) {
-      return { success: false, message: 'Username already exists' };
+      throw new HttpException('User with this username already exists', 400);
     }
 
     // 비밀번호 암호화
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 암호화된 비밀번호로 대체하여 저장
-    await this.authRepository.createUser({
+    const user = await this.authRepository.createUser({
       ...registerDto,
       password: hashedPassword,
     });
 
-    return { success: true, message: 'Registered successfully' };
+    const token = this.generateToken(user);
+
+    return { token };
   }
 
-  async login(
-    loginDto: LoginDto,
-  ): Promise<{ success: boolean; message: string }> {
+  async login(loginDto: LoginDto): Promise<{ token: string }> {
     const { username, password } = loginDto;
     const user = await this.authRepository.findByUsername(username);
 
     if (!user) {
-      return { success: false, message: 'Invalid credentials' };
+      throw new HttpException('Invalid credentials', 401);
     }
 
-    // bcrypt를 이용해 비밀번호 비교
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return { success: false, message: 'Invalid credentials' };
+      throw new HttpException('Invalid credentials', 401);
     }
 
-    return { success: true, message: 'Login successful' };
+    const token = this.generateToken(user);
+
+    return { token };
   }
 }

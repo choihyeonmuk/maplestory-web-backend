@@ -1,5 +1,4 @@
-import { IsEnum, IsString } from 'class-validator';
-import { ROLE } from '../auth.type';
+import { IsString } from 'class-validator';
 
 // TODO: 유효성 검증 추가 필요.
 export class LoginDto {
@@ -8,7 +7,4 @@ export class LoginDto {
 
   @IsString()
   password: string;
-
-  @IsEnum(ROLE)
-  role: ROLE;
 }
