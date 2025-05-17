@@ -9,6 +9,7 @@ services:
     ports:
       - "3000:3000"
     environment:
+      - PORT=${PORT}
       - JWT_SECRET=${JWT_SECRET}
     networks:
       - microservice-network
