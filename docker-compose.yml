@@ -12,8 +12,33 @@ services:
     networks:
       - microservice-network
 
+  auth-server:
+    build:
+      context: ./auth-server
+      dockerfile: Dockerfile
+    container_name: auth-server
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=${AUTH_SERVER_PORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - MONGODB_URI=${AUTH_MONGODB_URI}
+    networks:
+      - microservice-network
+
+  auth-database:
+    image: mongo:latest
+    container_name: auth-database
+    ports:
+      - "27017:27017"
+    volumes:
+      - auth-database:/data/db
+    networks:
+      - microservice-network
+
 networks:
   microservice-network:
     driver: bridge
 
-
+volumes:
+  auth-database:
