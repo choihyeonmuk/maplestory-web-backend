@@ -3,28 +3,44 @@ services:
     build:
       context: ./gateway-server
       dockerfile: Dockerfile
-    container_name: gateway-server
+    container_name: ${GATEWAY_SERVER_CONTAINER_NAME}
     ports:
-      - "3000:3000"
+      - ${GATEWAY_SERVER_PORT}:${GATEWAY_SERVER_PORT}
+    depends_on:
+      - auth-server
     environment:
       - PORT=${GATEWAY_SERVER_PORT}
       - JWT_SECRET=${JWT_SECRET}
+      - AUTH_SERVICE_URL=http://${AUTH_SERVER_CONTAINER_NAME}:${AUTH_SERVER_PORT}
     networks:
       - microservice-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   auth-server:
     build:
       context: ./auth-server
       dockerfile: Dockerfile
-    container_name: auth-server
+    container_name: ${AUTH_SERVER_CONTAINER_NAME}
     ports:
-      - "3001:3001"
+      - ${AUTH_SERVER_PORT}:${AUTH_SERVER_PORT}
     environment:
       - PORT=${AUTH_SERVER_PORT}
       - JWT_SECRET=${JWT_SECRET}
       - MONGODB_URI=${AUTH_MONGODB_URI}
+      - GATEWAY_SERVER_URL=http://${GATEWAY_SERVER_CONTAINER_NAME}:${GATEWAY_SERVER_PORT}
     networks:
       - microservice-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      - auth-database
 
   auth-database:
     image: mongo:latest
