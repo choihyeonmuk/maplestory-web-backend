@@ -8,14 +8,23 @@ services:
       - ${GATEWAY_SERVER_PORT}:${GATEWAY_SERVER_PORT}
     depends_on:
       - auth-server
+      - event-server
     environment:
       - PORT=${GATEWAY_SERVER_PORT}
       - JWT_SECRET=${JWT_SECRET}
-      - AUTH_SERVICE_URL=http://${AUTH_SERVER_CONTAINER_NAME}:${AUTH_SERVER_PORT}
+      - EVENT_MONGODB_URI=${EVENT_MONGODB_URI}
+      - AUTH_SERVER_URL=http://${AUTH_SERVER_CONTAINER_NAME}:${AUTH_SERVER_PORT}
+      - EVENT_SERVER_URL=http://${EVENT_SERVER_CONTAINER_NAME}:${EVENT_SERVER_PORT}
     networks:
       - microservice-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:${GATEWAY_SERVER_PORT}/health",
+        ]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -35,12 +44,46 @@ services:
     networks:
       - microservice-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:${AUTH_SERVER_PORT}/health",
+        ]
       interval: 10s
       timeout: 5s
       retries: 3
     depends_on:
       - auth-database
+
+  event-server:
+    build:
+      context: ./event-server
+      dockerfile: Dockerfile
+    container_name: ${EVENT_SERVER_CONTAINER_NAME}
+    ports:
+      - ${EVENT_SERVER_PORT}:${EVENT_SERVER_PORT}
+    environment:
+      - PORT=${EVENT_SERVER_PORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - MONGODB_URI=${EVENT_MONGODB_URI}
+      - GATEWAY_SERVER_URL=http://${GATEWAY_SERVER_CONTAINER_NAME}:${GATEWAY_SERVER_PORT}
+    networks:
+      - microservice-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:${EVENT_SERVER_PORT}/health",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      - event-database
 
   auth-database:
     image: mongo:latest
@@ -52,9 +95,20 @@ services:
     networks:
       - microservice-network
 
+  event-database:
+    image: mongo:latest
+    container_name: event-database
+    ports:
+      - "27018:27017"
+    volumes:
+      - event-database:/data/db
+    networks:
+      - microservice-network
+
 networks:
   microservice-network:
     driver: bridge
 
 volumes:
   auth-database:
+  event-database:

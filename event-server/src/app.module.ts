@@ -2,9 +2,9 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AuthModule } from './auth/auth.module';
-import { ProxyModule } from './proxy/proxy.module';
-import { HttpModule } from '@nestjs/axios';
+import { EventModule } from './event/event.module';
+import { RewardModule } from './reward/reward.module';
+import { RequestRewardModule } from './request-reward/request-reward.module';
 
 @Module({
   imports: [
@@ -14,13 +14,13 @@ import { HttpModule } from '@nestjs/axios';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('EVENT_MONGODB_URI'),
+        uri: configService.get<string>('MONGODB_URI'),
       }),
       inject: [ConfigService],
     }),
-    HttpModule,
-    AuthModule,
-    ProxyModule,
+    EventModule,
+    RewardModule,
+    RequestRewardModule,
   ],
   controllers: [AppController],
   providers: [],

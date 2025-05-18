@@ -9,18 +9,30 @@ import { AuthenticatedUserPayload } from '../auth/strategies/gateway-jwt.strateg
 export class ProxyService {
   private readonly logger = new Logger(ProxyService.name);
   private readonly authServiceUrl: string;
+  private readonly eventServiceUrl: string;
 
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {
-    this.authServiceUrl = this.configService.get<string>('AUTH_SERVICE_URL');
+    this.logger = new Logger(ProxyService.name);
+
+    this.authServiceUrl = this.configService.get<string>('AUTH_SERVER_URL');
+    this.eventServiceUrl = this.configService.get<string>('EVENT_SERVER_URL');
+
     this.logger.log(`Auth service URL configured as: ${this.authServiceUrl}`);
+    this.logger.log(`Event service URL configured as: ${this.eventServiceUrl}`);
   }
 
   private getServiceUrl(servicePath: string): string | null {
     if (servicePath.startsWith('/auth')) {
       return this.authServiceUrl;
+    } else if (
+      servicePath.startsWith('/events') ||
+      servicePath.startsWith('/rewards') ||
+      servicePath.startsWith('/request-rewards')
+    ) {
+      return this.eventServiceUrl;
     }
     this.logger.warn(
       `No service configured for path prefix: ${servicePath.split('/')[1]}`,
@@ -45,12 +57,17 @@ export class ProxyService {
       : normalizedPath;
 
     const servicePrefix = '/' + pathWithoutApiPrefix.split('/')[1]; // e.g., /auth, /events
+    this.logger.log(`Service prefix: ${servicePrefix}`);
     const downstreamPath =
       servicePrefix === '/auth'
         ? pathWithoutApiPrefix
         : pathWithoutApiPrefix.substring(servicePrefix.length || 1); // e.g., /login, "", /event/some-id
 
+    this.logger.log(`Downstream path: ${downstreamPath}`);
+
     const targetBaseUrl = this.getServiceUrl(servicePrefix);
+
+    this.logger.log(`Target base URL: ${targetBaseUrl}`);
 
     if (!targetBaseUrl) {
       this.logger.error(
