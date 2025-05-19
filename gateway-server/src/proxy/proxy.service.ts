@@ -105,12 +105,12 @@ export class ProxyService {
     // If user is authenticated, pass user information to downstream services
     if (user && user.sub) {
       requestConfig.headers['x-user-id'] = user.sub;
-      if (user.roles) {
-        requestConfig.headers['x-user-roles'] = user.roles.join(',');
+      if (user.role) {
+        requestConfig.headers['x-user-role'] = user.role;
       }
       requestConfig.headers['x-user-name'] = user.username;
       this.logger.log(
-        `Forwarding with user context: ID=${user.sub}, Roles=${user.roles?.join(',')}`,
+        `Forwarding with user context: ID=${user.sub}, Role=${user.role}`,
       );
     }
 

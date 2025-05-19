@@ -17,33 +17,60 @@ import { Request as ExpressRequest, Response } from 'express';
 // Add authenticated request interface
 interface AuthenticatedRequest extends ExpressRequest {
   user?: AuthenticatedUserPayload;
+  query: any;
+  headers: any;
 }
 import { ProxyService } from './proxy.service';
 import { handleProxyRequest } from './common-proxy.util';
 import { AuthenticatedUserPayload } from '../auth/strategies/gateway-jwt.strategy';
-import { RequirePermissions } from '../auth/decorators/require-permissions.decorator';
-import {
-  PermissionAction,
-  ResourceType,
-} from '../auth/permissions/permission.schema';
-import { PermissionGuard } from '../auth/guards/permission.guard';
+// 권한 체크는 이제 auth-server API로 위임
+import axios from 'axios';
+import { ConfigService } from '@nestjs/config';
+
 
 @Controller()
-@UseGuards(PermissionGuard)
 export class EventProxyController {
   private readonly logger = new Logger(EventProxyController.name);
+  private readonly authServerUrl: string;
 
-  constructor(private readonly proxyService: ProxyService) {}
+  constructor(
+    private readonly proxyService: ProxyService,
+    private readonly configService: ConfigService,
+  ) {
+    this.authServerUrl = this.configService.get<string>('AUTH_SERVER_URL');
+  }
+
+  private async checkPermission(role: string | undefined, permission: string): Promise<boolean> {
+    if (!role) return false;
+    try {
+      const resp = await axios.post(
+        `${this.authServerUrl}/auth/permission/check`,
+        { role, permission },
+      );
+      console.log({ resp });
+
+      return !!resp.data.allowed;
+    } catch (e) {
+      this.logger.error('Permission check failed', e);
+      return false;
+    }
+  }
 
   // Event endpoints
   @Get('events')
-  @RequirePermissions(`${ResourceType.EVENT}:${PermissionAction.READ}`)
   async getEvents(
     @Req() req: AuthenticatedRequest,
     @Res() res: Response,
     @Query() query: any,
   ) {
     this.logger.log('Proxying GET /events request');
+    // 권한 체크
+    const user = req.user as AuthenticatedUserPayload;
+    const allowed = await this.checkPermission(user?.role, 'event:read');
+
+    if (!allowed) {
+      return res.status(401).json({ message: 'Insufficient permissions' });
+    }
     return await handleProxyRequest({
       req,
       res,
@@ -58,13 +85,18 @@ export class EventProxyController {
   }
 
   @Get('events/:id')
-  @RequirePermissions(`${ResourceType.EVENT}:${PermissionAction.READ}`)
   async getEventById(
     @Req() req: AuthenticatedRequest,
     @Res() res: Response,
     @Param('id') id: string,
   ) {
     this.logger.log(`Proxying GET /events/${id} request`);
+    // 권한 체크
+    const user = req.user as AuthenticatedUserPayload;
+    const allowed = await this.checkPermission(user?.role, 'event:read');
+    if (!allowed) {
+      return res.status(401).json({ message: 'Insufficient permissions' });
+    }
     return await handleProxyRequest({
       req,
       res,
@@ -79,13 +111,18 @@ export class EventProxyController {
   }
 
   @Post('events')
-  @RequirePermissions(`${ResourceType.EVENT}:${PermissionAction.CREATE}`)
   async createEvent(
     @Req() req: AuthenticatedRequest,
     @Res() res: Response,
     @Body() body: any,
   ) {
     this.logger.log('Proxying POST /events request');
+    // 권한 체크
+    const user = req.user as AuthenticatedUserPayload;
+    const allowed = await this.checkPermission(user?.role, 'event:create');
+    if (!allowed) {
+      return res.status(401).json({ message: 'Insufficient permissions' });
+    }
     return await handleProxyRequest({
       req,
       res,
@@ -100,7 +137,6 @@ export class EventProxyController {
   }
 
   @Put('events/:id')
-  @RequirePermissions(`${ResourceType.EVENT}:${PermissionAction.UPDATE}`)
   async updateEvent(
     @Req() req: AuthenticatedRequest,
     @Res() res: Response,
@@ -108,6 +144,12 @@ export class EventProxyController {
     @Body() body: any,
   ) {
     this.logger.log(`Proxying PUT /events/${id} request`);
+    // 권한 체크
+    const user = req.user as AuthenticatedUserPayload;
+    const allowed = await this.checkPermission(user?.role, 'event:update');
+    if (!allowed) {
+      return res.status(401).json({ message: 'Insufficient permissions' });
+    }
     return await handleProxyRequest({
       req,
       res,
@@ -122,13 +164,18 @@ export class EventProxyController {
   }
 
   @Delete('events/:id')
-  @RequirePermissions(`${ResourceType.EVENT}:${PermissionAction.DELETE}`)
   async deleteEvent(
     @Req() req: AuthenticatedRequest,
     @Res() res: Response,
     @Param('id') id: string,
   ) {
     this.logger.log(`Proxying DELETE /events/${id} request`);
+    // 권한 체크
+    const user = req.user as AuthenticatedUserPayload;
+    const allowed = await this.checkPermission(user?.role, 'event:delete');
+    if (!allowed) {
+      return res.status(401).json({ message: 'Insufficient permissions' });
+    }
     return await handleProxyRequest({
       req,
       res,
@@ -144,7 +191,6 @@ export class EventProxyController {
 
   // Reward endpoints
   @Get('rewards')
-  @RequirePermissions(`${ResourceType.REWARD}:${PermissionAction.READ}`)
   async getRewards(
     @Req() req: AuthenticatedRequest,
     @Res() res: Response,
@@ -165,7 +211,6 @@ export class EventProxyController {
   }
 
   @Get('rewards/:id')
-  @RequirePermissions(`${ResourceType.REWARD}:${PermissionAction.READ}`)
   async getRewardById(
     @Req() req: AuthenticatedRequest,
     @Res() res: Response,
@@ -186,13 +231,18 @@ export class EventProxyController {
   }
 
   @Post('rewards')
-  @RequirePermissions(`${ResourceType.REWARD}:${PermissionAction.CREATE}`)
   async createReward(
     @Req() req: AuthenticatedRequest,
     @Res() res: Response,
     @Body() body: any,
   ) {
     this.logger.log('Proxying POST /rewards request');
+    // 권한 체크
+    const user = req.user as AuthenticatedUserPayload;
+    const allowed = await this.checkPermission(user?.role, 'reward:create');
+    if (!allowed) {
+      return res.status(401).json({ message: 'Insufficient permissions' });
+    }
     return await handleProxyRequest({
       req,
       res,
@@ -207,7 +257,6 @@ export class EventProxyController {
   }
 
   @Put('rewards/:id')
-  @RequirePermissions(`${ResourceType.REWARD}:${PermissionAction.UPDATE}`)
   async updateReward(
     @Req() req: AuthenticatedRequest,
     @Res() res: Response,
@@ -215,6 +264,12 @@ export class EventProxyController {
     @Body() body: any,
   ) {
     this.logger.log(`Proxying PUT /rewards/${id} request`);
+    // 권한 체크
+    const user = req.user as AuthenticatedUserPayload;
+    const allowed = await this.checkPermission(user?.role, 'reward:update');
+    if (!allowed) {
+      return res.status(401).json({ message: 'Insufficient permissions' });
+    }
     return await handleProxyRequest({
       req,
       res,
@@ -229,13 +284,18 @@ export class EventProxyController {
   }
 
   @Delete('rewards/:id')
-  @RequirePermissions(`${ResourceType.REWARD}:${PermissionAction.DELETE}`)
   async deleteReward(
     @Req() req: AuthenticatedRequest,
     @Res() res: Response,
     @Param('id') id: string,
   ) {
     this.logger.log(`Proxying DELETE /rewards/${id} request`);
+    // 권한 체크
+    const user = req.user as AuthenticatedUserPayload;
+    const allowed = await this.checkPermission(user?.role, 'reward:delete');
+    if (!allowed) {
+      return res.status(401).json({ message: 'Insufficient permissions' });
+    }
     return await handleProxyRequest({
       req,
       res,
@@ -251,7 +311,6 @@ export class EventProxyController {
 
   // Request-Reward endpoints
   @Get('request-rewards')
-  @RequirePermissions(`${ResourceType.REQUEST_REWARD}:${PermissionAction.READ}`)
   async getRequestRewards(
     @Req() req: AuthenticatedRequest,
     @Res() res: Response,
@@ -260,13 +319,7 @@ export class EventProxyController {
     const user = req.user as AuthenticatedUserPayload;
 
     // For users with only READ_OWN permission, filter to only return their own requests
-    if (
-      user &&
-      user.roles.includes('user') &&
-      !user.roles.some((role) =>
-        ['admin', 'operator', 'auditor'].includes(role),
-      )
-    ) {
+    if (user && user.role === 'user') {
       if (!query) query = {};
       query.userId = user.sub; // Add user ID filter to the query
       this.logger.log(`Filtering request-rewards for user ${user.sub}`);
@@ -294,13 +347,7 @@ export class EventProxyController {
   ) {
     const user = req.user as AuthenticatedUserPayload;
     // Regular users can only view their own request-rewards, others can view all
-    if (
-      user &&
-      user.roles.includes('user') &&
-      !user.roles.some((role) =>
-        ['admin', 'operator', 'auditor'].includes(role),
-      )
-    ) {
+    if (user && user.role === 'user') {
       // We'll let the backend validate if this request belongs to the user
       // The backend should check the user ID from the headers
       this.logger.log(
@@ -323,9 +370,6 @@ export class EventProxyController {
   }
 
   @Post('request-rewards')
-  @RequirePermissions(
-    `${ResourceType.REQUEST_REWARD}:${PermissionAction.CREATE}`,
-  )
   async createRequestReward(
     @Req() req: AuthenticatedRequest,
     @Res() res: Response,
@@ -333,8 +377,14 @@ export class EventProxyController {
   ) {
     const user = req.user as AuthenticatedUserPayload;
 
+    // 권한 체크
+    const allowed = await this.checkPermission(user?.role, 'request-reward:create');
+    if (!allowed) {
+      return res.status(401).json({ message: 'Insufficient permissions' });
+    }
+
     // Ensure the request is associated with the current user if they are a regular user
-    if (user && user.roles.includes('user') && !user.roles.includes('admin')) {
+    if (user && user.role === 'user') {
       body.userId = user.sub;
       this.logger.log(
         `Setting userId to ${user.sub} for request-reward creation`,
@@ -356,9 +406,6 @@ export class EventProxyController {
   }
 
   @Put('request-rewards/:id')
-  @RequirePermissions(
-    `${ResourceType.REQUEST_REWARD}:${PermissionAction.UPDATE}`,
-  )
   async updateRequestReward(
     @Req() req: AuthenticatedRequest,
     @Res() res: Response,
@@ -366,6 +413,12 @@ export class EventProxyController {
     @Body() body: any,
   ) {
     this.logger.log(`Proxying PUT /request-rewards/${id} request`);
+    // 권한 체크
+    const user = req.user as AuthenticatedUserPayload;
+    const allowed = await this.checkPermission(user?.role, 'request-reward:update');
+    if (!allowed) {
+      return res.status(401).json({ message: 'Insufficient permissions' });
+    }
     return await handleProxyRequest({
       req,
       res,
@@ -380,15 +433,18 @@ export class EventProxyController {
   }
 
   @Delete('request-rewards/:id')
-  @RequirePermissions(
-    `${ResourceType.REQUEST_REWARD}:${PermissionAction.DELETE}`,
-  )
   async deleteRequestReward(
     @Req() req: AuthenticatedRequest,
     @Res() res: Response,
     @Param('id') id: string,
   ) {
     this.logger.log(`Proxying DELETE /request-rewards/${id} request`);
+    // 권한 체크
+    const user = req.user as AuthenticatedUserPayload;
+    const allowed = await this.checkPermission(user?.role, 'request-reward:delete');
+    if (!allowed) {
+      return res.status(401).json({ message: 'Insufficient permissions' });
+    }
     return await handleProxyRequest({
       req,
       res,

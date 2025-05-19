@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 export interface AuthenticatedUserPayload {
   sub: string; // User ID
   username: string;
-  roles?: string[];
+  role?: string;
   iat?: number;
   exp?: number;
 }
