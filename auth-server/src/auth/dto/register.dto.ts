@@ -1,7 +1,6 @@
-import { IsEnum, IsString, MinLength } from 'class-validator';
-import { ROLE } from '../auth.type';
+import { IsString, MinLength } from 'class-validator';
 
-// TODO: 유효성 검증 추가 필요.
+// 일반 사용자 회원가입 DTO
 export class RegisterDto {
   @IsString()
   @MinLength(3)
@@ -10,7 +9,4 @@ export class RegisterDto {
   @IsString()
   @MinLength(4)
   password: string;
-
-  @IsEnum(ROLE)
-  role: ROLE;
 }

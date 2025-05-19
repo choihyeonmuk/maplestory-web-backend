@@ -5,6 +5,7 @@ import { AuthRepository } from './auth.repository';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { User, UserSchema } from '../schemas/user.schema';
+import { Staff, StaffSchema } from '../schemas/staff.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PermissionController } from './permission.controller';
 import { PermissionService } from './permission.service';
@@ -21,6 +22,7 @@ import { Permission, PermissionSchema } from '../schemas/permission.schema';
     }),
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
+      { name: Staff.name, schema: StaffSchema },
       { name: Permission.name, schema: PermissionSchema },
     ]),
   ],

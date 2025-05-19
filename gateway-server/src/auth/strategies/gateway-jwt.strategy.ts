@@ -7,9 +7,10 @@ import { firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
 
 export interface AuthenticatedUserPayload {
-  sub: string; // User ID
+  sub: string; // User or Staff ID
   username: string;
-  role?: string;
+  role?: string; // Staff role - ADMIN, OPERATOR, AUDITOR
+  userType: 'user' | 'staff'; // Identifies if this is a regular user or staff
   iat?: number;
   exp?: number;
 }
@@ -31,17 +32,26 @@ export class GatewayJwtStrategy extends PassportStrategy(Strategy) {
     payload: AuthenticatedUserPayload,
   ): Promise<AuthenticatedUserPayload> {
     try {
-      // auth-server를 통해 사용자가 존재하고 활성화 상태인지 확인
+      // Validate through auth-server based on userType (user or staff)
       const authUrl = this.configService.get<string>('AUTH_SERVER_URL');
 
+      // Use the verify endpoint which now handles both users and staff
       const response = await firstValueFrom(
         this.httpService.get(`${authUrl}/auth/verify/${payload.sub}`),
       );
 
-      // 사용자 확인에 실패하거나 사용자가 활성화되지 않은 경우 예외 발생
+      // Check if the account is active
       if (!response.data?.isActive) {
+        const accountType = payload.userType === 'staff' ? 'Staff' : 'User';
         throw new UnauthorizedException(
-          'User account is inactive or has been deleted',
+          `${accountType} account is inactive or has been deleted`,
+        );
+      }
+
+      // Additional validation for staff roles if needed
+      if (payload.userType === 'staff' && !payload.role) {
+        throw new UnauthorizedException(
+          'Staff account is missing required role information',
         );
       }
 
