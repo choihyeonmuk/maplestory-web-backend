@@ -41,8 +41,6 @@ export class PermissionService {
     role: string,
     requiredPermission: PermissionValue,
   ): Promise<boolean> {
-    console.log({ role, requiredPermission });
-
     if (!role) {
       return false;
     }
@@ -53,7 +51,6 @@ export class PermissionService {
     // DB에서 해당 role의 permission을 조회
     const permissionsDocs = await this.permissionModel.find({ role });
     for (const doc of permissionsDocs) {
-      console.log({ doc });
       if (doc.permissions.includes(requiredPermission)) {
         return true;
       }

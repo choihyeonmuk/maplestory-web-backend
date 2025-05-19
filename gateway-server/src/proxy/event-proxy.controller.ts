@@ -47,7 +47,6 @@ export class EventProxyController {
         `${this.authServerUrl}/auth/permission/check`,
         { role, permission },
       );
-      console.log({ resp });
 
       return !!resp.data.allowed;
     } catch (e) {

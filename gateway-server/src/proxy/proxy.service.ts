@@ -58,10 +58,16 @@ export class ProxyService {
 
     const servicePrefix = '/' + pathWithoutApiPrefix.split('/')[1]; // e.g., /auth, /events
     this.logger.log(`Service prefix: ${servicePrefix}`);
-    const downstreamPath =
-      servicePrefix === '/auth'
-        ? pathWithoutApiPrefix
-        : pathWithoutApiPrefix.substring(servicePrefix.length || 1); // e.g., /login, "", /event/some-id
+
+    const [_, service, ...rest] = pathWithoutApiPrefix.split('/');
+
+    const fullPathServices = ['auth', 'events', 'rewards', 'request-rewards'];
+
+    const downstreamPath = fullPathServices.includes(service)
+      ? pathWithoutApiPrefix
+      : rest.length
+        ? `/${rest.join('/')}`
+        : '';
 
     this.logger.log(`Downstream path: ${downstreamPath}`);
 
