@@ -9,7 +9,6 @@ import {
 import { Request, Response } from 'express';
 import { ProxyService } from './proxy.service';
 import { Public } from '../auth/decorators/public.decorator';
-import { AuthenticatedUserPayload } from '../auth/strategies/gateway-jwt.strategy';
 import { handleProxyRequest } from './common-proxy.util';
 
 @Controller()
@@ -57,6 +56,4 @@ export class ProxyController {
       controllerName: 'ProxyController',
     });
   }
-
-  // handleRequest 메서드는 공통 유틸로 대체되어 삭제되었습니다.
 }

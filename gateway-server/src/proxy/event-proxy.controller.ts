@@ -44,14 +44,17 @@ export class EventProxyController {
     @Query() query: any,
   ) {
     this.logger.log('Proxying GET /events request');
-    return await this.handleRequest(
+    return await handleProxyRequest({
       req,
       res,
-      null,
-      query,
-      req.user as AuthenticatedUserPayload,
-      req.headers,
-    );
+      body: null,
+      queryParams: query,
+      user: req.user as AuthenticatedUserPayload,
+      requestHeaders: req.headers,
+      proxyService: this.proxyService,
+      logger: this.logger,
+      controllerName: 'EventProxyController',
+    });
   }
 
   @Get('events/:id')
@@ -148,14 +151,17 @@ export class EventProxyController {
     @Query() query: any,
   ) {
     this.logger.log('Proxying GET /rewards request');
-    return await this.handleRequest(
+    return await handleProxyRequest({
       req,
       res,
-      null,
-      query,
-      req.user as AuthenticatedUserPayload,
-      req.headers,
-    );
+      body: null,
+      queryParams: query,
+      user: req.user as AuthenticatedUserPayload,
+      requestHeaders: req.headers,
+      proxyService: this.proxyService,
+      logger: this.logger,
+      controllerName: 'EventProxyController',
+    });
   }
 
   @Get('rewards/:id')
@@ -267,7 +273,17 @@ export class EventProxyController {
     }
 
     this.logger.log('Proxying GET /request-rewards request');
-    return await this.handleRequest(req, res, null, query, user, req.headers);
+    return await handleProxyRequest({
+      req,
+      res,
+      body: null,
+      queryParams: query,
+      user,
+      requestHeaders: req.headers,
+      proxyService: this.proxyService,
+      logger: this.logger,
+      controllerName: 'EventProxyController',
+    });
   }
 
   @Get('request-rewards/:id')
