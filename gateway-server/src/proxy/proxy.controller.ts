@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Post,
-  Req,
-  Res,
-  Logger,
-  Body,
-} from '@nestjs/common';
+import { Controller, Post, Req, Res, Body } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ProxyService } from './proxy.service';
 import { Public } from '../auth/decorators/public.decorator';
@@ -13,8 +6,6 @@ import { handleProxyRequest } from './common-proxy.util';
 
 @Controller()
 export class ProxyController {
-  private readonly logger = new Logger(ProxyController.name);
-
   constructor(private readonly proxyService: ProxyService) {}
 
   @Public()
@@ -32,7 +23,6 @@ export class ProxyController {
       user: undefined,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      logger: this.logger,
       controllerName: 'ProxyController',
     });
   }
@@ -52,7 +42,6 @@ export class ProxyController {
       user: undefined,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      logger: this.logger,
       controllerName: 'ProxyController',
     });
   }

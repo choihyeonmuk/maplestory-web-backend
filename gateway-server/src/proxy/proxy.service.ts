@@ -19,9 +19,6 @@ export class ProxyService {
 
     this.authServiceUrl = this.configService.get<string>('AUTH_SERVER_URL');
     this.eventServiceUrl = this.configService.get<string>('EVENT_SERVER_URL');
-
-    this.logger.log(`Auth service URL configured as: ${this.authServiceUrl}`);
-    this.logger.log(`Event service URL configured as: ${this.eventServiceUrl}`);
   }
 
   private getServiceUrl(servicePath: string): string | null {
@@ -69,16 +66,9 @@ export class ProxyService {
         ? `/${rest.join('/')}`
         : '';
 
-    this.logger.log(`Downstream path: ${downstreamPath}`);
-
     const targetBaseUrl = this.getServiceUrl(servicePrefix);
 
-    this.logger.log(`Target base URL: ${targetBaseUrl}`);
-
     if (!targetBaseUrl) {
-      this.logger.error(
-        `No target service URL found for path: ${normalizedPath} (normalized to ${pathWithoutApiPrefix})`,
-      );
       throw new Error(`Service not found for path: ${normalizedPath}`);
     }
 
@@ -95,8 +85,8 @@ export class ProxyService {
       this.logger.log(`Request body: ${JSON.stringify(data)}`);
     }
     const cleanHeaders = { ...(headers || {}) };
-    delete cleanHeaders['content-type'];
-    delete cleanHeaders['Content-Type'];
+    // delete cleanHeaders['content-type'];
+    // delete cleanHeaders['Content-Type'];
     delete cleanHeaders['content-length'];
     delete cleanHeaders['Content-Length'];
 
@@ -107,6 +97,8 @@ export class ProxyService {
       params: queryParams,
       headers: cleanHeaders,
     };
+
+    this.logger.log(`Request config: ${JSON.stringify(requestConfig)}`);
 
     // If user is authenticated, pass user information to downstream services
     if (user && user.sub) {

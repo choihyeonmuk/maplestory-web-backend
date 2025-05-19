@@ -8,6 +8,7 @@ import {
 } from '../schemas/request-reward.schema';
 import { EventService } from '../event/event.service';
 import { EventStatus } from '../schemas/event.schema';
+import { ExampleModel } from '../example.model';
 
 /**
  * 리워드 요청을 처리하는 서비스
@@ -18,6 +19,7 @@ export class RequestRewardService {
   constructor(
     private readonly requestRewardRepository: RequestRewardRepository,
     private readonly eventService: EventService,
+    private readonly exampleModel: ExampleModel,
   ) {}
 
   /**
@@ -62,10 +64,23 @@ export class RequestRewardService {
       });
     }
 
-    // 이벤트 조건 확인 (필요에 따라 더 복잡한 로직 구현 가능)
-    if (event.conditions) {
-      // 여기서 사용자가 이벤트 조건을 충족하는지 확인하는 로직을 구현할 수 있습니다.
-      // 예시로 조건이 있는지 여부만 확인하고 있습니다.
+    // 이벤트 조건 확인 및 자동 검증
+    if (event.condition) {
+      // ExampleModel을 사용하여, 사용자가 이벤트 조건을 충족하는지 확인
+      const conditionMet = await this.exampleModel.verifyCondition(
+        user, // user is a string (userId)
+        event.condition.type,
+        event.condition.details,
+      );
+
+      if (!conditionMet) {
+        return this.requestRewardRepository.create({
+          user,
+          eventId,
+          result: RequestRewardResult.FAIL,
+          message: 'Event condition not met',
+        });
+      }
     }
 
     // 모든 검증을 통과하면 성공적인 요청으로 처리

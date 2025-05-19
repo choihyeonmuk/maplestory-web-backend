@@ -57,6 +57,7 @@ export const ROLE_PERMISSIONS = {
 
 @Schema({
   versionKey: false,
+  id: false,
 })
 export class Permission extends Document {
   @Prop({ required: true, unique: true })

@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { Logger, HttpStatus } from '@nestjs/common';
+import { HttpStatus } from '@nestjs/common';
 import { ProxyService } from './proxy.service';
 import { AuthenticatedUserPayload } from '../auth/strategies/gateway-jwt.strategy';
 
@@ -14,7 +14,6 @@ export async function handleProxyRequest({
   user,
   requestHeaders,
   proxyService,
-  logger,
   controllerName,
 }: {
   req: any;
@@ -24,7 +23,6 @@ export async function handleProxyRequest({
   user?: AuthenticatedUserPayload;
   requestHeaders?: any;
   proxyService: ProxyService;
-  logger: Logger;
   controllerName: string;
 }) {
   try {
@@ -46,7 +44,7 @@ export async function handleProxyRequest({
     }
     res.status(serviceResponse.status).json(serviceResponse.data);
   } catch (error: any) {
-    logger.error(
+    console.error(
       `Error in ${controllerName} for ${req.path}: ${error.message}`,
       error.stack,
     );

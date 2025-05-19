@@ -19,10 +19,30 @@ export class Reward {
   type: RewardType;
 
   @Prop({ required: true })
-  targetId: string;
+  targetId: string | null;
 
   @Prop({ required: true })
   quantity: number;
+
+  @Prop({ required: false })
+  description: string;
+
+  @Prop({ type: mongoose.Schema.Types.Mixed, required: false })
+  properties: {
+    // 아이템 관련 속성
+    level?: number;
+    itemCategory?: string;
+    iconUrl?: string;
+    // 쿠폰 관련 속성
+    couponCode?: string;
+    validUntil?: Date;
+  };
+
+  @Prop({ type: Boolean, default: false })
+  isLimitedTime: boolean;
+
+  @Prop({ type: Date, required: false })
+  availableUntil: Date;
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,

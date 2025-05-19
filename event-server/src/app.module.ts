@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { EventModule } from './event/event.module';
 import { RewardModule } from './reward/reward.module';
 import { RequestRewardModule } from './request-reward/request-reward.module';
+import { AttendanceModule } from './attendance/attendance.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { RequestRewardModule } from './request-reward/request-reward.module';
     EventModule,
     RewardModule,
     RequestRewardModule,
+    AttendanceModule,
   ],
   controllers: [AppController],
   providers: [],
