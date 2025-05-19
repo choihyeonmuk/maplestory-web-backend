@@ -31,14 +31,14 @@ export class GatewayJwtStrategy extends PassportStrategy(Strategy) {
     payload: AuthenticatedUserPayload,
   ): Promise<AuthenticatedUserPayload> {
     try {
-      // Verify that the user still exists and is active by checking with auth-server
+      // auth-server를 통해 사용자가 존재하고 활성화 상태인지 확인
       const authUrl = this.configService.get<string>('AUTH_SERVER_URL');
 
       const response = await firstValueFrom(
         this.httpService.get(`${authUrl}/auth/verify/${payload.sub}`),
       );
 
-      // If user check fails or user is not active, throw an exception
+      // 사용자 확인에 실패하거나 사용자가 활성화되지 않은 경우 예외 발생
       if (!response.data?.isActive) {
         throw new UnauthorizedException(
           'User account is inactive or has been deleted',
@@ -52,8 +52,7 @@ export class GatewayJwtStrategy extends PassportStrategy(Strategy) {
       }
 
       if (error instanceof AxiosError) {
-        // Handle auth service connection errors
-        console.error('Error verifying user:', error.message);
+        // 인증 서비스 연결 오류 처리
         throw new UnauthorizedException('Unable to verify user authentication');
       }
 

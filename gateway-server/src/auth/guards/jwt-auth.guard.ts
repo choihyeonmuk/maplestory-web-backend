@@ -8,6 +8,11 @@ import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { Observable } from 'rxjs';
 
+/**
+ * JWT 인증을 처리하는 가드
+ * @class JwtAuthGuard
+ * @extends {AuthGuard('jwt')}
+ */
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
   constructor(private reflector: Reflector) {
@@ -29,8 +34,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
-  handleRequest(err, user, info) {
-    // You can throw an exception based on either "info" or "err" arguments
+  handleRequest(err: Error, user: any) {
     if (err || !user) {
       throw err || new UnauthorizedException('Authentication required');
     }

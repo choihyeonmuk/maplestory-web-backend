@@ -39,7 +39,7 @@ export class AuthService {
       throw new HttpException('User with this username already exists', 400);
     }
 
-    // 비밀번호 암호화
+    // 비밀번호 암호화 처리 (bcrypt 사용)
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -73,14 +73,11 @@ export class AuthService {
 
   async verifyUser(userId: string): Promise<{ isActive: boolean }> {
     try {
-      // Validate userId format and find user
-      new mongoose.Types.ObjectId(userId); // Just to validate the format
+      new mongoose.Types.ObjectId(userId); // ObjectId 형식인지 검증
       const user = await this.authRepository.findUserById(userId);
 
-      // If user exists and is active, return true; otherwise return false
       return { isActive: !!user };
     } catch {
-      // If userId is invalid or any other error occurs
       return { isActive: false };
     }
   }
