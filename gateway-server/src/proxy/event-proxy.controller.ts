@@ -19,6 +19,7 @@ interface AuthenticatedRequest extends ExpressRequest {
   user?: AuthenticatedUserPayload;
 }
 import { ProxyService } from './proxy.service';
+import { handleProxyRequest } from './common-proxy.util';
 import { AuthenticatedUserPayload } from '../auth/strategies/gateway-jwt.strategy';
 import { RequirePermissions } from '../auth/decorators/require-permissions.decorator';
 import {
@@ -61,14 +62,17 @@ export class EventProxyController {
     @Param('id') id: string,
   ) {
     this.logger.log(`Proxying GET /events/${id} request`);
-    return await this.handleRequest(
+    return await handleProxyRequest({
       req,
       res,
-      null,
-      req.query,
-      req.user as AuthenticatedUserPayload,
-      req.headers,
-    );
+      body: null,
+      queryParams: req.query,
+      user: req.user as AuthenticatedUserPayload,
+      requestHeaders: req.headers,
+      proxyService: this.proxyService,
+      logger: this.logger,
+      controllerName: 'EventProxyController',
+    });
   }
 
   @Post('events')
@@ -79,14 +83,17 @@ export class EventProxyController {
     @Body() body: any,
   ) {
     this.logger.log('Proxying POST /events request');
-    return await this.handleRequest(
+    return await handleProxyRequest({
       req,
       res,
       body,
-      req.query,
-      req.user as AuthenticatedUserPayload,
-      req.headers,
-    );
+      queryParams: req.query,
+      user: req.user as AuthenticatedUserPayload,
+      requestHeaders: req.headers,
+      proxyService: this.proxyService,
+      logger: this.logger,
+      controllerName: 'EventProxyController',
+    });
   }
 
   @Put('events/:id')
@@ -98,14 +105,17 @@ export class EventProxyController {
     @Body() body: any,
   ) {
     this.logger.log(`Proxying PUT /events/${id} request`);
-    return await this.handleRequest(
+    return await handleProxyRequest({
       req,
       res,
       body,
-      req.query,
-      req.user as AuthenticatedUserPayload,
-      req.headers,
-    );
+      queryParams: req.query,
+      user: req.user as AuthenticatedUserPayload,
+      requestHeaders: req.headers,
+      proxyService: this.proxyService,
+      logger: this.logger,
+      controllerName: 'EventProxyController',
+    });
   }
 
   @Delete('events/:id')
@@ -116,14 +126,17 @@ export class EventProxyController {
     @Param('id') id: string,
   ) {
     this.logger.log(`Proxying DELETE /events/${id} request`);
-    return await this.handleRequest(
+    return await handleProxyRequest({
       req,
       res,
-      null,
-      req.query,
-      req.user as AuthenticatedUserPayload,
-      req.headers,
-    );
+      body: null,
+      queryParams: req.query,
+      user: req.user as AuthenticatedUserPayload,
+      requestHeaders: req.headers,
+      proxyService: this.proxyService,
+      logger: this.logger,
+      controllerName: 'EventProxyController',
+    });
   }
 
   // Reward endpoints
@@ -153,14 +166,17 @@ export class EventProxyController {
     @Param('id') id: string,
   ) {
     this.logger.log(`Proxying GET /rewards/${id} request`);
-    return await this.handleRequest(
+    return await handleProxyRequest({
       req,
       res,
-      null,
-      req.query,
-      req.user as AuthenticatedUserPayload,
-      req.headers,
-    );
+      body: null,
+      queryParams: req.query,
+      user: req.user as AuthenticatedUserPayload,
+      requestHeaders: req.headers,
+      proxyService: this.proxyService,
+      logger: this.logger,
+      controllerName: 'EventProxyController',
+    });
   }
 
   @Post('rewards')
@@ -171,14 +187,17 @@ export class EventProxyController {
     @Body() body: any,
   ) {
     this.logger.log('Proxying POST /rewards request');
-    return await this.handleRequest(
+    return await handleProxyRequest({
       req,
       res,
       body,
-      req.query,
-      req.user as AuthenticatedUserPayload,
-      req.headers,
-    );
+      queryParams: req.query,
+      user: req.user as AuthenticatedUserPayload,
+      requestHeaders: req.headers,
+      proxyService: this.proxyService,
+      logger: this.logger,
+      controllerName: 'EventProxyController',
+    });
   }
 
   @Put('rewards/:id')
@@ -190,14 +209,17 @@ export class EventProxyController {
     @Body() body: any,
   ) {
     this.logger.log(`Proxying PUT /rewards/${id} request`);
-    return await this.handleRequest(
+    return await handleProxyRequest({
       req,
       res,
       body,
-      req.query,
-      req.user as AuthenticatedUserPayload,
-      req.headers,
-    );
+      queryParams: req.query,
+      user: req.user as AuthenticatedUserPayload,
+      requestHeaders: req.headers,
+      proxyService: this.proxyService,
+      logger: this.logger,
+      controllerName: 'EventProxyController',
+    });
   }
 
   @Delete('rewards/:id')
@@ -208,14 +230,17 @@ export class EventProxyController {
     @Param('id') id: string,
   ) {
     this.logger.log(`Proxying DELETE /rewards/${id} request`);
-    return await this.handleRequest(
+    return await handleProxyRequest({
       req,
       res,
-      null,
-      req.query,
-      req.user as AuthenticatedUserPayload,
-      req.headers,
-    );
+      body: null,
+      queryParams: req.query,
+      user: req.user as AuthenticatedUserPayload,
+      requestHeaders: req.headers,
+      proxyService: this.proxyService,
+      logger: this.logger,
+      controllerName: 'EventProxyController',
+    });
   }
 
   // Request-Reward endpoints
@@ -268,14 +293,17 @@ export class EventProxyController {
     }
 
     this.logger.log(`Proxying GET /request-rewards/${id} request`);
-    return await this.handleRequest(
+    return await handleProxyRequest({
       req,
       res,
-      null,
-      req.query,
+      body: null,
+      queryParams: req.query,
       user,
-      req.headers,
-    );
+      requestHeaders: req.headers,
+      proxyService: this.proxyService,
+      logger: this.logger,
+      controllerName: 'EventProxyController',
+    });
   }
 
   @Post('request-rewards')
@@ -298,14 +326,17 @@ export class EventProxyController {
     }
 
     this.logger.log('Proxying POST /request-rewards request');
-    return await this.handleRequest(
+    return await handleProxyRequest({
       req,
       res,
       body,
-      req.query,
+      queryParams: req.query,
       user,
-      req.headers,
-    );
+      requestHeaders: req.headers,
+      proxyService: this.proxyService,
+      logger: this.logger,
+      controllerName: 'EventProxyController',
+    });
   }
 
   @Put('request-rewards/:id')
@@ -319,14 +350,17 @@ export class EventProxyController {
     @Body() body: any,
   ) {
     this.logger.log(`Proxying PUT /request-rewards/${id} request`);
-    return await this.handleRequest(
+    return await handleProxyRequest({
       req,
       res,
       body,
-      req.query,
-      req.user as AuthenticatedUserPayload,
-      req.headers,
-    );
+      queryParams: req.query,
+      user: req.user as AuthenticatedUserPayload,
+      requestHeaders: req.headers,
+      proxyService: this.proxyService,
+      logger: this.logger,
+      controllerName: 'EventProxyController',
+    });
   }
 
   @Delete('request-rewards/:id')
@@ -339,61 +373,18 @@ export class EventProxyController {
     @Param('id') id: string,
   ) {
     this.logger.log(`Proxying DELETE /request-rewards/${id} request`);
-    return await this.handleRequest(
+    return await handleProxyRequest({
       req,
       res,
-      null,
-      req.query,
-      req.user as AuthenticatedUserPayload,
-      req.headers,
-    );
+      body: null,
+      queryParams: req.query,
+      user: req.user as AuthenticatedUserPayload,
+      requestHeaders: req.headers,
+      proxyService: this.proxyService,
+      logger: this.logger,
+      controllerName: 'EventProxyController',
+    });
   }
 
-  private async handleRequest(
-    req: AuthenticatedRequest,
-    res: Response,
-    body: any,
-    queryParams: any,
-    user?: AuthenticatedUserPayload,
-    requestHeaders?: any,
-  ) {
-    try {
-      const serviceResponse = await this.proxyService.forwardRequest(
-        req.method as any,
-        req.path,
-        body,
-        queryParams,
-        user,
-        requestHeaders,
-      );
-
-      // Forward all response headers
-      if (serviceResponse.headers) {
-        Object.entries(serviceResponse.headers).forEach(([key, value]) => {
-          // Skip setting Content-Length as it will be set automatically
-          if (key.toLowerCase() !== 'content-length') {
-            res.setHeader(key, value);
-          }
-        });
-      }
-
-      res.status(serviceResponse.status).json(serviceResponse.data);
-    } catch (error) {
-      this.logger.error(
-        `Error in event proxy controller for ${req.path}: ${error.message}`,
-        error.stack,
-      );
-
-      if (error.status && error.data) {
-        res.status(error.status).json(error.data);
-      } else if (error.response && error.response.status) {
-        res.status(error.response.status).json(error.response.data);
-      } else {
-        res.status(500).json({
-          message: 'Error proxying request',
-          details: error.message,
-        });
-      }
-    }
-  }
+  // handleRequest 메서드는 공통 유틸로 대체되어 삭제되었습니다.
 }
