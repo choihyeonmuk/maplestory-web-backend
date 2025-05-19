@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import {
   PermissionValue,
   Permission,
+  ROLE_PERMISSIONS,
 } from '../schemas/permission.schema';
 
 export { PermissionValue };
@@ -20,8 +21,32 @@ export class PermissionService {
 
   private async initializePermissions() {
     this.logger.log('Initializing permissions...');
-    // DB에서 Permission document가 없으면 초기값을 생성하거나, 필요시 별도 마이그레이션 스크립트로 관리
-    this.logger.log('Permission initialization skipped: now fully DB-based.');
+    // 역할 별 권한을 초기화
+    for (const [role, permissions] of Object.entries(ROLE_PERMISSIONS)) {
+      const existingPermission = await this.permissionModel.findOne({ role });
+      if (!existingPermission) {
+        // 역할에 대한 권한이 없으면 생성
+        await this.permissionModel.create({
+          role,
+          permissions: permissions as PermissionValue[],
+        });
+        this.logger.log(`Created permissions for role: ${role}`);
+      } else if (
+        !this.arePermissionsEqual(
+          existingPermission.permissions,
+          permissions as PermissionValue[],
+        )
+      ) {
+        // 역할에 대한 권한이 다르면 업데이트
+        existingPermission.permissions = permissions as PermissionValue[];
+        await existingPermission.save();
+        this.logger.log(`Updated permissions for role: ${role}`);
+      } else {
+        this.logger.log(
+          `Permissions for role ${role} already exist and are up to date`,
+        );
+      }
+    }
     this.logger.log('Permissions initialization complete');
   }
 
@@ -48,12 +73,14 @@ export class PermissionService {
     if (role === 'ADMIN') {
       return true;
     }
+
     // DB에서 해당 role의 permission을 조회
-    const permissionsDocs = await this.permissionModel.find({ role });
-    for (const doc of permissionsDocs) {
-      if (doc.permissions.includes(requiredPermission)) {
-        return true;
-      }
+    const permissionDoc = await this.permissionModel.findOne({ role });
+    if (
+      permissionDoc &&
+      permissionDoc.permissions.includes(requiredPermission)
+    ) {
+      return true;
     }
     return false;
   }
@@ -67,11 +94,11 @@ export class PermissionService {
       const all = await this.permissionModel.find();
       return Array.from(new Set(all.flatMap((doc) => doc.permissions)));
     }
-    const permissionsDocs = await this.permissionModel.find({ role });
-    const userPermissions = new Set<PermissionValue>();
-    for (const doc of permissionsDocs) {
-      doc.permissions.forEach((permission) => userPermissions.add(permission));
+    // 역할에 따른 권한 조회
+    const permissionDoc = await this.permissionModel.findOne({ role });
+    if (permissionDoc) {
+      return permissionDoc.permissions;
     }
-    return Array.from(userPermissions);
+    return [];
   }
 }

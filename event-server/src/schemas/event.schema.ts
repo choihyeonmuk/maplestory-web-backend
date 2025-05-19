@@ -39,3 +39,6 @@ export class Event {
 }
 
 export const EventSchema = SchemaFactory.createForClass(Event);
+
+// Feat: Add role-based permissions to permission schema and service
+//
