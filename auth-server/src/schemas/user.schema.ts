@@ -18,6 +18,9 @@ export class User {
   @Prop({ required: true })
   role: ROLE;
 
+  @Prop({ type: Boolean, default: true })
+  isActive: boolean;
+
   @Prop({ type: Date, required: false, index: -1 })
   createdAt: Date;
 

@@ -17,7 +17,6 @@ export enum PermissionAction {
 
 export type PermissionValue = `${ResourceType}:${PermissionAction}`;
 
-
 @Schema()
 export class Permission extends Document {
   @Prop({ required: true, unique: true })

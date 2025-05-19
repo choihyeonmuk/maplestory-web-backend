@@ -16,6 +16,10 @@ export class AuthRepository {
   }
 
   async findByUsername(username: string): Promise<User | null> {
-    return this.userModel.findOne({ username });
+    return this.userModel.findOne({ username, isActive: true });
+  }
+
+  async findUserById(userId: string): Promise<User | null> {
+    return this.userModel.findOne({ _id: userId, isActive: true });
   }
 }

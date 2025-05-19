@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../schemas/user.schema';
 import { ConfigService } from '@nestjs/config';
+import * as mongoose from 'mongoose';
 
 @Injectable()
 export class AuthService {
@@ -25,7 +26,10 @@ export class AuthService {
       username: user.username,
       role: user.role,
     };
-    return this.jwtService.sign(payload, { secret: this.jwtSecret });
+    return this.jwtService.sign(payload, {
+      secret: this.jwtSecret,
+      expiresIn: '1h',
+    });
   }
 
   async register(registerDto: RegisterDto): Promise<{ token: string }> {
@@ -65,5 +69,19 @@ export class AuthService {
     const token = this.generateToken(user);
 
     return { token };
+  }
+
+  async verifyUser(userId: string): Promise<{ isActive: boolean }> {
+    try {
+      // Validate userId format and find user
+      new mongoose.Types.ObjectId(userId); // Just to validate the format
+      const user = await this.authRepository.findUserById(userId);
+
+      // If user exists and is active, return true; otherwise return false
+      return { isActive: !!user };
+    } catch {
+      // If userId is invalid or any other error occurs
+      return { isActive: false };
+    }
   }
 }
