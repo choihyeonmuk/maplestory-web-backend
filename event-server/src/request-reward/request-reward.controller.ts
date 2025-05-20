@@ -6,10 +6,12 @@ import {
   Param,
   Query,
   HttpStatus,
+  Patch,
 } from '@nestjs/common';
 import { RequestRewardService } from './request-reward.service';
 import { CreateRequestRewardDto } from './dto/create-request-reward.dto';
 import { QueryRequestRewardDto } from './dto/query-request-reward.dto';
+import { ProcessRequestRewardDto } from './dto/process-request-reward.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -87,5 +89,31 @@ export class RequestRewardController {
   })
   async findOne(@Param('id') id: string) {
     return this.requestRewardService.findOne(id);
+  }
+
+  @Patch('/process')
+  @ApiOperation({
+    summary: '보상 요청 수동 처리',
+    description: '운영자 또는 관리자가 보상 요청을 수동으로 처리합니다.',
+  })
+  @ApiBody({ type: ProcessRequestRewardDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: '보상 요청이 성공적으로 처리되었습니다.',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: '보상 요청을 찾을 수 없음',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: '잘못된 요청 또는 이미 처리된 요청',
+  })
+  async processRequest(
+    @Body() processRequestRewardDto: ProcessRequestRewardDto,
+  ) {
+    return this.requestRewardService.processManualRequest(
+      processRequestRewardDto,
+    );
   }
 }

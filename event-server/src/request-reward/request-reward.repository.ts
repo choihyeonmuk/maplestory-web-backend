@@ -66,4 +66,13 @@ export class RequestRewardRepository {
   async findOne(id: string): Promise<RequestReward> {
     return this.requestRewardModel.findById(id).exec();
   }
+
+  async findOneAndUpdate(
+    id: string,
+    updateData: Partial<RequestReward>,
+  ): Promise<RequestReward> {
+    return this.requestRewardModel
+      .findByIdAndUpdate(id, updateData, { new: true })
+      .exec();
+  }
 }

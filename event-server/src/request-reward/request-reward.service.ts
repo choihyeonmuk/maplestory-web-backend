@@ -1,7 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { RequestRewardRepository } from './request-reward.repository';
 import { CreateRequestRewardDto } from './dto/create-request-reward.dto';
 import { QueryRequestRewardDto } from './dto/query-request-reward.dto';
+import { ProcessRequestRewardDto } from './dto/process-request-reward.dto';
 import {
   RequestReward,
   RequestRewardResult,
@@ -123,5 +128,62 @@ export class RequestRewardService {
 
   async findOne(id: string): Promise<RequestReward> {
     return this.requestRewardRepository.findOne(id);
+  }
+
+  /**
+   * 운영자나 관리자가 보상 요청을 수동으로 처리합니다.
+   * @param processRequestRewardDto 수동 처리 DTO
+   * @returns 처리된 RequestReward 객체
+   */
+  async processManualRequest(
+    processRequestRewardDto: ProcessRequestRewardDto,
+  ): Promise<RequestReward> {
+    const {
+      requestId,
+      result,
+      message,
+      processRewards = true,
+    } = processRequestRewardDto;
+
+    // 요청 존재 여부 확인
+    const requestReward = await this.requestRewardRepository.findOne(requestId);
+    if (!requestReward) {
+      throw new NotFoundException('보상 요청을 찾을 수 없습니다.');
+    }
+
+    // 이미 처리된 요청인지 확인
+    if (requestReward.isProcessed) {
+      throw new BadRequestException('이미 처리된 보상 요청입니다.');
+    }
+
+    // 요청 상태 업데이트
+    const now = new Date();
+    const updatedRequestReward =
+      await this.requestRewardRepository.findOneAndUpdate(requestId, {
+        result,
+        message:
+          message ||
+          (result === RequestRewardResult.SUCCESS
+            ? '운영자에 의해 수동 승인됨'
+            : '운영자에 의해 수동 거부됨'),
+        isProcessed: true,
+        processedAt: now,
+      });
+
+    // 성공적으로 처리된 요청에 대해 보상 지급 (옵션에 따라)
+    if (result === RequestRewardResult.SUCCESS && processRewards) {
+      // 이벤트 정보 가져오기
+      const eventId = requestReward.event?.toString();
+      if (eventId) {
+        const event = await this.eventService.findOne(eventId);
+        if (event) {
+          // TODO: 실제 보상 지급 로직 구현
+          // 보상 지급 처리 (예: reward 서비스 호출)
+          // this.rewardService.processReward(...)
+        }
+      }
+    }
+
+    return updatedRequestReward;
   }
 }
