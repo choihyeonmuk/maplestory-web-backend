@@ -12,7 +12,6 @@ import {
 } from '@nestjs/common';
 import { Request as ExpressRequest, Response } from 'express';
 
-// Add authenticated request interface
 interface AuthenticatedRequest extends ExpressRequest {
   user?: AuthenticatedUserPayload;
   query: any;
@@ -21,7 +20,6 @@ interface AuthenticatedRequest extends ExpressRequest {
 import { ProxyService } from './proxy.service';
 import { handleProxyRequest } from './common-proxy.util';
 import { AuthenticatedUserPayload } from '../auth/strategies/gateway-jwt.strategy';
-// 권한 체크는 이제 auth-server API로 위임
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 
@@ -54,19 +52,35 @@ export class EventProxyController {
     }
   }
 
-  // Event endpoints
+  /**
+   * Check if a user has the required permission and return appropriate response if not
+   * @param user The authenticated user
+   * @param permission The required permission (format: 'resource:action')
+   * @param res The response object to return error if needed
+   * @returns true if the user has permission, otherwise sends a 401 response and returns false
+   */
+  private async checkUserPermission(
+    user: AuthenticatedUserPayload | undefined,
+    permission: string,
+    res: Response,
+  ): Promise<boolean> {
+    const allowed = await this.checkPermission(user?.role, permission);
+    if (!allowed) {
+      res.status(401).json({ message: 'Insufficient permissions' });
+      return false;
+    }
+    return true;
+  }
+
   @Get('events')
   async getEvents(
     @Req() req: AuthenticatedRequest,
     @Res() res: Response,
     @Query() query: any,
   ) {
-    // 권한 체크
     const user = req.user as AuthenticatedUserPayload;
-    const allowed = await this.checkPermission(user?.role, 'event:read');
-
-    if (!allowed) {
-      return res.status(401).json({ message: 'Insufficient permissions' });
+    if (!(await this.checkUserPermission(user, 'event:read', res))) {
+      return;
     }
     return await handleProxyRequest({
       req,
@@ -76,7 +90,6 @@ export class EventProxyController {
       user: req.user as AuthenticatedUserPayload,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      controllerName: 'EventProxyController',
     });
   }
 
@@ -86,11 +99,9 @@ export class EventProxyController {
     @Res() res: Response,
     @Param('id') id: string,
   ) {
-    // 권한 체크
     const user = req.user as AuthenticatedUserPayload;
-    const allowed = await this.checkPermission(user?.role, 'event:read');
-    if (!allowed) {
-      return res.status(401).json({ message: 'Insufficient permissions' });
+    if (!(await this.checkUserPermission(user, 'event:read', res))) {
+      return;
     }
     return await handleProxyRequest({
       req,
@@ -100,7 +111,6 @@ export class EventProxyController {
       user: req.user as AuthenticatedUserPayload,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      controllerName: 'EventProxyController',
     });
   }
 
@@ -111,10 +121,8 @@ export class EventProxyController {
     @Body() body: any,
   ) {
     const user = req.user as AuthenticatedUserPayload;
-
-    const allowed = await this.checkPermission(user?.role, 'event:create');
-    if (!allowed) {
-      return res.status(401).json({ message: 'Insufficient permissions' });
+    if (!(await this.checkUserPermission(user, 'event:create', res))) {
+      return;
     }
 
     return await handleProxyRequest({
@@ -125,7 +133,6 @@ export class EventProxyController {
       user: req.user as AuthenticatedUserPayload,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      controllerName: 'EventProxyController',
     });
   }
 
@@ -137,10 +144,8 @@ export class EventProxyController {
     @Body() body: any,
   ) {
     const user = req.user as AuthenticatedUserPayload;
-
-    const allowed = await this.checkPermission(user?.role, 'event:update');
-    if (!allowed) {
-      return res.status(401).json({ message: 'Insufficient permissions' });
+    if (!(await this.checkUserPermission(user, 'event:update', res))) {
+      return;
     }
     return await handleProxyRequest({
       req,
@@ -150,7 +155,6 @@ export class EventProxyController {
       user: req.user as AuthenticatedUserPayload,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      controllerName: 'EventProxyController',
     });
   }
 
@@ -161,10 +165,8 @@ export class EventProxyController {
     @Param('id') id: string,
   ) {
     const user = req.user as AuthenticatedUserPayload;
-
-    const allowed = await this.checkPermission(user?.role, 'event:delete');
-    if (!allowed) {
-      return res.status(401).json({ message: 'Insufficient permissions' });
+    if (!(await this.checkUserPermission(user, 'event:delete', res))) {
+      return;
     }
     return await handleProxyRequest({
       req,
@@ -174,7 +176,6 @@ export class EventProxyController {
       user: req.user as AuthenticatedUserPayload,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      controllerName: 'EventProxyController',
     });
   }
 
@@ -186,10 +187,8 @@ export class EventProxyController {
     @Query() query: any,
   ) {
     const user = req.user as AuthenticatedUserPayload;
-
-    const allowed = await this.checkPermission(user?.role, 'reward:read');
-    if (!allowed) {
-      return res.status(401).json({ message: 'Insufficient permissions' });
+    if (!(await this.checkUserPermission(user, 'reward:read', res))) {
+      return;
     }
     return await handleProxyRequest({
       req,
@@ -199,7 +198,6 @@ export class EventProxyController {
       user: req.user as AuthenticatedUserPayload,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      controllerName: 'EventProxyController',
     });
   }
 
@@ -210,10 +208,8 @@ export class EventProxyController {
     @Param('id') id: string,
   ) {
     const user = req.user as AuthenticatedUserPayload;
-
-    const allowed = await this.checkPermission(user?.role, 'reward:read');
-    if (!allowed) {
-      return res.status(401).json({ message: 'Insufficient permissions' });
+    if (!(await this.checkUserPermission(user, 'reward:read', res))) {
+      return;
     }
     return await handleProxyRequest({
       req,
@@ -223,7 +219,6 @@ export class EventProxyController {
       user: req.user as AuthenticatedUserPayload,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      controllerName: 'EventProxyController',
     });
   }
 
@@ -247,7 +242,6 @@ export class EventProxyController {
       user: req.user as AuthenticatedUserPayload,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      controllerName: 'EventProxyController',
     });
   }
 
@@ -272,7 +266,6 @@ export class EventProxyController {
       user: req.user as AuthenticatedUserPayload,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      controllerName: 'EventProxyController',
     });
   }
 
@@ -296,7 +289,6 @@ export class EventProxyController {
       user: req.user as AuthenticatedUserPayload,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      controllerName: 'EventProxyController',
     });
   }
 
@@ -323,7 +315,6 @@ export class EventProxyController {
       user,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      controllerName: 'EventProxyController',
     });
   }
 
@@ -348,7 +339,6 @@ export class EventProxyController {
       user,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      controllerName: 'EventProxyController',
     });
   }
 
@@ -382,7 +372,6 @@ export class EventProxyController {
       user,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      controllerName: 'EventProxyController',
     });
   }
 
@@ -410,7 +399,6 @@ export class EventProxyController {
       user: req.user as AuthenticatedUserPayload,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      controllerName: 'EventProxyController',
     });
   }
 
@@ -437,7 +425,6 @@ export class EventProxyController {
       user: req.user as AuthenticatedUserPayload,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      controllerName: 'EventProxyController',
     });
   }
 }

@@ -9,7 +9,6 @@ import { StaffLoginDto } from './dto/staff-login.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // User API endpoints
   @Post('user/register')
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.registerUser(registerDto);
@@ -20,7 +19,6 @@ export class AuthController {
     return this.authService.loginUser(loginDto);
   }
 
-  // Staff API endpoints (admin, operator, auditor)
   @Post('staff/register')
   async staffRegister(@Body() staffRegisterDto: StaffRegisterDto) {
     return this.authService.registerStaff(staffRegisterDto);

@@ -14,7 +14,6 @@ export async function handleProxyRequest({
   user,
   requestHeaders,
   proxyService,
-  controllerName,
 }: {
   req: any;
   res: Response;
@@ -23,7 +22,6 @@ export async function handleProxyRequest({
   user?: AuthenticatedUserPayload;
   requestHeaders?: any;
   proxyService: ProxyService;
-  controllerName: string;
 }) {
   try {
     const serviceResponse = await proxyService.forwardRequest(
@@ -44,10 +42,7 @@ export async function handleProxyRequest({
     }
     res.status(serviceResponse.status).json(serviceResponse.data);
   } catch (error: any) {
-    console.error(
-      `Error in ${controllerName} for ${req.path}: ${error.message}`,
-      error.stack,
-    );
+    console.error(`Error in ${req.path}: ${error.message}`, error.stack);
     if (error.status && error.data) {
       res.status(error.status).json(error.data);
     } else if (error.response && error.response.status) {

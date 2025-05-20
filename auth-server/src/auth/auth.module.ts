@@ -28,6 +28,5 @@ import { Permission, PermissionSchema } from '../schemas/permission.schema';
   ],
   controllers: [AuthController, PermissionController],
   providers: [AuthService, AuthRepository, PermissionService],
-  exports: [AuthService, PermissionService],
 })
 export class AuthModule {}

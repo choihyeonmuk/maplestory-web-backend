@@ -113,14 +113,7 @@ export class ProxyService {
     }
 
     try {
-      this.logger.log(`Starting HTTP request to ${targetUrl}`);
-      const response = await firstValueFrom(
-        this.httpService.request(requestConfig),
-      );
-      this.logger.log(
-        `Successfully received response from ${targetUrl}, status: ${response.status}`,
-      );
-      return response;
+      return await firstValueFrom(this.httpService.request(requestConfig));
     } catch (error) {
       this.logger.error(
         `Error forwarding request to ${targetUrl}: ${error.message}`,

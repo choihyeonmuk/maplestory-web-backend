@@ -24,7 +24,6 @@ export class AuthProxyController {
       user: undefined,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      controllerName: 'AuthProxyController',
     });
   }
 
@@ -43,7 +42,6 @@ export class AuthProxyController {
       user: undefined,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      controllerName: 'AuthProxyController',
     });
   }
 
@@ -63,7 +61,6 @@ export class AuthProxyController {
       user: undefined,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      controllerName: 'AuthProxyController',
     });
   }
 
@@ -82,7 +79,6 @@ export class AuthProxyController {
       user: undefined,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      controllerName: 'AuthProxyController',
     });
   }
 
@@ -102,7 +98,6 @@ export class AuthProxyController {
       user: undefined,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
-      controllerName: 'AuthProxyController',
     });
   }
 }
