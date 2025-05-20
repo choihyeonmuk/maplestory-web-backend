@@ -353,7 +353,7 @@ export class EventProxyController {
     // 권한 체크
     const allowed = await this.checkPermission(
       user?.role,
-      'request-reward:create',
+      'request_reward:create',
     );
     if (!allowed) {
       return res.status(401).json({ message: 'Insufficient permissions' });
@@ -386,7 +386,7 @@ export class EventProxyController {
     const user = req.user as AuthenticatedUserPayload;
     const allowed = await this.checkPermission(
       user?.role,
-      'request-reward:update',
+      'request_reward:update',
     );
     if (!allowed) {
       return res.status(401).json({ message: 'Insufficient permissions' });
@@ -412,7 +412,7 @@ export class EventProxyController {
     const user = req.user as AuthenticatedUserPayload;
     const allowed = await this.checkPermission(
       user?.role,
-      'request-reward:delete',
+      'request_reward:delete',
     );
     if (!allowed) {
       return res.status(401).json({ message: 'Insufficient permissions' });
@@ -423,6 +423,26 @@ export class EventProxyController {
       body: null,
       queryParams: req.query,
       user: req.user as AuthenticatedUserPayload,
+      requestHeaders: req.headers,
+      proxyService: this.proxyService,
+    });
+  }
+
+  // 출석 이벤트를 위한 컨트롤러
+  @Post('attendance')
+  async recordAttendance(
+    @Req() req: AuthenticatedRequest,
+    @Res() res: Response,
+    @Body() body: any,
+  ) {
+    // 권한 체크
+    const user = req.user as AuthenticatedUserPayload;
+    return await handleProxyRequest({
+      req,
+      res,
+      body,
+      queryParams: req.query,
+      user,
       requestHeaders: req.headers,
       proxyService: this.proxyService,
     });

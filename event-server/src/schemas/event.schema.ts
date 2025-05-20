@@ -6,6 +6,11 @@ export enum EventStatus {
   INACTIVE = 'inactive',
 }
 
+export enum EventProvideBy {
+  MANUAL = 'manual',
+  SYSTEM = 'system',
+}
+
 export enum EventConditionType {
   ATTENDANCE = 'attendance', // 출석 이벤트
   CONSECUTIVE_ATTENDANCE = 'consecutive_attendance', // 연속 출석 이벤트
@@ -13,7 +18,6 @@ export enum EventConditionType {
   QUEST_COMPLETION = 'quest_completion', // 퀘스트 완료 이벤트
   LEVEL_ACHIEVEMENT = 'level_achievement', // 레벨 달성 이벤트
   ITEM_COLLECTION = 'item_collection', // 아이템 수집 이벤트
-  BOSS_DEFEAT = 'boss_defeat', // 보스 처치 이벤트
   CUSTOM = 'custom', // 기타 커스텀 이벤트
 }
 
@@ -39,6 +43,13 @@ export class Event {
   @Prop({ required: true, enum: EventStatus, default: EventStatus.INACTIVE })
   status: EventStatus;
 
+  @Prop({
+    required: true,
+    enum: EventProvideBy,
+    default: EventProvideBy.MANUAL,
+  })
+  provideBy: EventProvideBy;
+
   @Prop({ type: Date, required: false, index: -1 })
   createdAt: Date;
 
@@ -62,9 +73,6 @@ export class Event {
       // 아이템 수집 이벤트 관련 필드
       itemIds?: string[];
       itemCounts?: Record<string, number>;
-      // 보스 처치 이벤트 관련 필드
-      bossId?: string;
-      bossCount?: number;
       // 시간 제한이 있는 이벤트 관련 필드
       timeLimit?: number; // 초 단위
       // 커스텀 이벤트 조건을 위한 필드

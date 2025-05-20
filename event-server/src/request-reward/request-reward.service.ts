@@ -8,7 +8,10 @@ import {
 } from '../schemas/request-reward.schema';
 import { EventService } from '../event/event.service';
 import { EventStatus } from '../schemas/event.schema';
-import { ExampleModel } from '../example.model';
+import { EventConditionVerifier } from '../event-condition-verifier.model';
+import { EventProvideBy } from '../schemas/event.schema';
+import { AttendanceService } from '../attendance/attendance.service';
+import { RewardService } from '../reward/reward.service';
 
 /**
  * 리워드 요청을 처리하는 서비스
@@ -16,11 +19,18 @@ import { ExampleModel } from '../example.model';
  */
 @Injectable()
 export class RequestRewardService {
+  private readonly eventConditionVerifier: EventConditionVerifier;
+
   constructor(
     private readonly requestRewardRepository: RequestRewardRepository,
     private readonly eventService: EventService,
-    private readonly exampleModel: ExampleModel,
-  ) {}
+    private readonly attendanceService: AttendanceService,
+    private readonly rewardService: RewardService,
+  ) {
+    this.eventConditionVerifier = new EventConditionVerifier(
+      this.attendanceService,
+    );
+  }
 
   /**
    * 리워드 요청을 처리합니다.
@@ -40,6 +50,8 @@ export class RequestRewardService {
         eventId,
         result: RequestRewardResult.FAIL,
         message: 'Event not found',
+        conditionSnapshot: event.condition,
+        event: null,
       });
     }
 
@@ -50,6 +62,8 @@ export class RequestRewardService {
         eventId,
         result: RequestRewardResult.FAIL,
         message: 'Event is not active',
+        conditionSnapshot: event.condition,
+        event: eventId,
       });
     }
 
@@ -61,16 +75,16 @@ export class RequestRewardService {
         eventId,
         result: RequestRewardResult.FAIL,
         message: 'Event is not in valid period',
+        conditionSnapshot: event.condition,
+        event: eventId,
       });
     }
 
     // 이벤트 조건 확인 및 자동 검증
-    if (event.condition) {
-      // ExampleModel을 사용하여, 사용자가 이벤트 조건을 충족하는지 확인
-      const conditionMet = await this.exampleModel.verifyCondition(
+    if (event.provideBy === EventProvideBy.SYSTEM && event.condition) {
+      const conditionMet = await this.eventConditionVerifier.verifyCondition(
         user, // user is a string (userId)
-        event.condition.type,
-        event.condition.details,
+        event.condition,
       );
 
       if (!conditionMet) {
@@ -79,17 +93,28 @@ export class RequestRewardService {
           eventId,
           result: RequestRewardResult.FAIL,
           message: 'Event condition not met',
+          conditionSnapshot: event.condition,
+          event: eventId,
         });
       }
     }
 
     // 모든 검증을 통과하면 성공적인 요청으로 처리
-    return this.requestRewardRepository.create({
+    const requestReward = await this.requestRewardRepository.create({
       user,
       eventId,
       result: RequestRewardResult.SUCCESS,
       message: 'Reward successfully claimed',
+      conditionSnapshot: event.condition,
+      event: eventId,
     });
+
+    // 성공적으로 처리된 요청에 대한 보상 지급
+    if (event.provideBy === EventProvideBy.SYSTEM && event.condition) {
+      // TODO: 보상 지급 로직 구현
+    }
+
+    return requestReward;
   }
 
   async findAll(queryDto: QueryRequestRewardDto): Promise<RequestReward[]> {

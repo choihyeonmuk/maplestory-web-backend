@@ -1,4 +1,4 @@
-import { EventStatus } from '../../schemas/event.schema';
+import { EventStatus, EventProvideBy } from '../../schemas/event.schema';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateEventDto {
@@ -37,6 +37,14 @@ export class UpdateEventDto {
     required: false,
   })
   status?: EventStatus;
+
+  @ApiProperty({
+    description: '이벤트 지급 방식 (수동/시스템)',
+    enum: EventProvideBy,
+    example: EventProvideBy.MANUAL,
+    required: false,
+  })
+  provideBy?: EventProvideBy;
 
   @ApiProperty({
     description: '이벤트 참여 조건',

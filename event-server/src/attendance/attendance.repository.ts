@@ -10,7 +10,7 @@ export class AttendanceRepository {
   ) {}
 
   async create(userId: string): Promise<Attendance> {
-    // Use today's date at midnight for consistent daily attendance tracking
+    // 오늘의 날짜를 자정으로 설정하여 일일 출석 기록을 일관되게 추적
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -30,8 +30,8 @@ export class AttendanceRepository {
   }
 
   async countAttendance(userId: string, days: number = null): Promise<number> {
-    // If days is provided, count attendance in the last X days
-    // Otherwise count all attendance records
+    // days가 제공되면 지난 X일의 출석 기록을 세고,
+    // 그렇지 않으면 모든 출석 기록을 세는다.
     if (days) {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);

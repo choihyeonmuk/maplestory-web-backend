@@ -18,11 +18,12 @@ export class AttendanceService {
   async recordAttendance(userId: string): Promise<Attendance> {
     try {
       // Check if user has already attended today
-      const hasAttended = await this.attendanceRepository.hasAttendedToday(userId);
+      const hasAttended =
+        await this.attendanceRepository.hasAttendedToday(userId);
       if (hasAttended) {
         throw new ConflictException('User has already attended today');
       }
-      
+
       return await this.attendanceRepository.create(userId);
     } catch (error) {
       if (error instanceof ConflictException) {

@@ -27,13 +27,11 @@ export class ProxyService {
     } else if (
       servicePath.startsWith('/events') ||
       servicePath.startsWith('/rewards') ||
-      servicePath.startsWith('/request-rewards')
+      servicePath.startsWith('/request-rewards') ||
+      servicePath.startsWith('/attendance')
     ) {
       return this.eventServiceUrl;
     }
-    this.logger.warn(
-      `No service configured for path prefix: ${servicePath.split('/')[1]}`,
-    );
     return null;
   }
 
@@ -54,11 +52,17 @@ export class ProxyService {
       : normalizedPath;
 
     const servicePrefix = '/' + pathWithoutApiPrefix.split('/')[1]; // e.g., /auth, /events
-    this.logger.log(`Service prefix: ${servicePrefix}`);
 
     const [_, service, ...rest] = pathWithoutApiPrefix.split('/');
 
-    const fullPathServices = ['auth', 'events', 'rewards', 'request-rewards'];
+    // attendance는 이벤트 조건 달성을 위한 것
+    const fullPathServices = [
+      'auth',
+      'events',
+      'rewards',
+      'request-rewards',
+      'attendance',
+    ];
 
     const downstreamPath = fullPathServices.includes(service)
       ? pathWithoutApiPrefix
@@ -78,7 +82,6 @@ export class ProxyService {
       : `http://${targetBaseUrl}`;
 
     const targetUrl = `${normalizedBaseUrl}${downstreamPath}`;
-    this.logger.log(`Forwarding ${method} request to ${targetUrl}`);
 
     // Log request body for debugging
     if (data) {
