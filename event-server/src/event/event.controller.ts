@@ -40,7 +40,6 @@ export class EventController {
     description: '잘못된 요청 데이터',
   })
   async create(@Body() createEventDto: CreateEventDto) {
-    console.log({ createEventDto });
     return this.eventService.create(createEventDto);
   }
 

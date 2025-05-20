@@ -32,6 +32,7 @@ export const ROLE_PERMISSIONS = {
   ],
   [ROLE.OPERATOR]: [
     `${ResourceType.REQUEST_REWARD}:${PermissionAction.READ}`,
+    `${ResourceType.REQUEST_REWARD}:${PermissionAction.UPDATE}`,
     `${ResourceType.REWARD}:${PermissionAction.READ}`,
     `${ResourceType.REWARD}:${PermissionAction.CREATE}`,
     `${ResourceType.REWARD}:${PermissionAction.UPDATE}`,
