@@ -55,8 +55,10 @@ export class RequestRewardService {
         eventId,
         result: RequestRewardResult.FAIL,
         message: 'Event not found',
-        conditionSnapshot: event.condition,
+        conditionSnapshot: null,
         event: null,
+        isProcessed: false,
+        processedAt: null,
       });
     }
 
@@ -69,6 +71,8 @@ export class RequestRewardService {
         message: 'Event is not active',
         conditionSnapshot: event.condition,
         event: eventId,
+        isProcessed: false,
+        processedAt: null,
       });
     }
 
@@ -82,6 +86,8 @@ export class RequestRewardService {
         message: 'Event is not in valid period',
         conditionSnapshot: event.condition,
         event: eventId,
+        isProcessed: false,
+        processedAt: null,
       });
     }
 
@@ -100,11 +106,14 @@ export class RequestRewardService {
           message: 'Event condition not met',
           conditionSnapshot: event.condition,
           event: eventId,
+          isProcessed: false,
+          processedAt: null,
         });
       }
     }
 
     // 모든 검증을 통과하면 성공적인 요청으로 처리
+    const isAutoProcess = event.provideBy === EventProvideBy.SYSTEM;
     const requestReward = await this.requestRewardRepository.create({
       user,
       eventId,
@@ -112,6 +121,8 @@ export class RequestRewardService {
       message: 'Reward successfully claimed',
       conditionSnapshot: event.condition,
       event: eventId,
+      isProcessed: isAutoProcess,
+      processedAt: isAutoProcess ? new Date() : null,
     });
 
     // 성공적으로 처리된 요청에 대한 보상 지급

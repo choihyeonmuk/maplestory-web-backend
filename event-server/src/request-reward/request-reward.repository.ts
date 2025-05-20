@@ -21,10 +21,14 @@ export class RequestRewardRepository {
     message?: string;
     conditionSnapshot?: Record<string, any>;
     event?: string;
+    isProcessed?: boolean;
+    processedAt?: Date;
   }): Promise<RequestReward> {
     const createdRequestReward = new this.requestRewardModel({
       ...data,
       requestedAt: new Date(),
+      isProcessed: data.isProcessed !== undefined ? data.isProcessed : false,
+      processedAt: data.processedAt || null,
     });
     return createdRequestReward.save();
   }
